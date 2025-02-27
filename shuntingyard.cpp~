@@ -1,0 +1,15 @@
+#include <iostream>
+#include <cstring>
+#include "Node.h"
+
+using namespace std;
+
+int main() {
+  bool active = true;
+  while (active) {
+    cout << "Enter an equation in infix form" << endl << "> ";
+    
+    
+  }
+  return 0;
+}
