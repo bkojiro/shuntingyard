@@ -8,10 +8,13 @@ bool isValid(char c);
 void push(Node* &stack, char c);
 void push(Node* &stack, Node* branch);
 char pop(Node* &stack);
+Node* treePop(Node* &stack);
 char peek(Node* stack);
 void enqueue(Node* &queue, char c);
 char dequeue(Node* &queue);
-void printPost(Node* tree);
+void printIn(Node* current);
+void printPost(Node* current);
+void printPre(Node* current);
 
 int main() {
   Node* queue = new Node(0);
@@ -37,14 +40,6 @@ int main() {
   while (stack->getNext() != NULL) { //if all inputs are pushed/enqueued, push rest of queue
     enqueue(queue, pop(stack));
   }
-
-  /*
-  //postfix
-  Node* temp = queue;
-  while (temp->getNext() != NULL) {
-    cout << temp->getNext()->getData();
-    temp = temp->getNext();
-  }*/
   
   //CONVERT TO EXPRESSION TREE
   Node* tree = new Node(0); //STACK
@@ -54,17 +49,16 @@ int main() {
       push(tree, new Node(a));
     } else {
       Node* temp = new Node(a);
-      temp->setRight(new Node(pop(tree)));
-      if (a != 94) { //binary operator
-	temp->setLeft(new Node(pop(tree)));
-      }
+      temp->setRight(treePop(tree));
+      temp->setLeft(treePop(tree));
       push(tree, temp);
-      
     }
   }
   delete queue;
   delete stack;
-  cout << tree->getNext()->getLeft()->getRight()->getData();
+  cout << "POSTFIX: ";
+  printPost(tree->getNext());
+  cout << endl;
   
   //SET UP OUTPUT METHOD
   bool active = true;
@@ -75,17 +69,40 @@ int main() {
     cin.ignore();
     if (strcmp(outputAction, "INFIX") == 0) {
       //output infix notation
+      printIn(tree->getNext());
+      cout << endl;
     } else if (strcmp(outputAction, "POSTFIX") == 0) {
       //output postfix notation
       printPost(tree->getNext());
+      cout << endl;
     } else if (strcmp(outputAction, "PREFIX") == 0) {
       //output prefix notation
+      printPre(tree->getNext());
+      cout << endl;
     } else if (strcmp(outputAction, "QUIT") == 0) {
       //terminate program
       active = false;
     }
   }
   return 0;
+}
+
+void printIn(Node* current) {
+  if (isValid(current->getData())) {
+    cout << "(";
+    if (isValid(current->getLeft()->getData())) {
+      printIn(current->getLeft());
+    } else {
+      cout << current->getLeft()->getData(); //<< current->getData();
+    }
+    cout << current->getData();
+    if (isValid(current->getRight()->getData())) {
+      printIn(current->getRight());
+    } else {
+      cout << current->getRight()->getData();
+    }
+    cout << ")";
+  }
 }
 
 void printPost(Node* current) {
@@ -96,6 +113,16 @@ void printPost(Node* current) {
     printPost(current->getRight());
   }
   cout << current->getData();
+}
+
+void printPre(Node* current) {
+  cout << current->getData();
+  if (current->getLeft() != NULL) {
+    printPre(current->getLeft());
+  }
+  if (current->getRight() != NULL) {
+    printPre(current->getRight());
+  }
 }
 
 bool isValid(char c) {
@@ -132,7 +159,6 @@ char pop(Node* &stack) {
   while (current->getNext() != NULL) {
     if (current->getNext()->getNext() == NULL) { //if next is last in list
       char popData = current->getNext()->getData();
-      current->getNext()->~Node();
       current->setNext(NULL);
       delete current->getNext();
       return popData;
@@ -143,6 +169,21 @@ char pop(Node* &stack) {
   return 0;
 }
 
+Node* treePop(Node* &stack) {
+  Node* current = stack;
+  while (current->getNext() != NULL) {
+    if (current->getNext()->getNext() == NULL) { //if next is last in list
+      Node* popData = current->getNext();
+      current->setNext(NULL);
+      delete current->getNext();
+      return popData;
+    } else {
+      current = current->getNext();
+    }
+  }
+  return 0;
+}
+  
 char peek(Node* stack) {
   Node* current = stack;
   while (current->getNext() != NULL) {
@@ -165,7 +206,6 @@ char dequeue(Node* &queue) {
     c = queue->getNext()->getData();
     Node* temp = queue->getNext();
     queue->setNext(queue->getNext()->getNext());
-    temp->~Node();
     delete temp;
   }
   return c;
